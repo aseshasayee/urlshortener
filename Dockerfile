@@ -1,14 +1,12 @@
-# Use a Java base image
-FROM openjdk:17-jdk-slim
-
-# Set the working directory in the container
+# Stage 1: Build the JAR
+FROM maven:3.8.2-openjdk-17 AS build
 WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
 
-# Copy the Spring Boot JAR file into the container
-COPY target/urlshortener-0.0.1-SNAPSHOT.jar app.jar
-
-# Expose the application port
+# Stage 2: Run the app
+FROM openjdk:17-jdk-slim
+WORKDIR /app
+COPY --from=build /app/target/urlshortener-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
-
-# Run the Spring Boot application
 ENTRYPOINT ["java", "-jar", "app.jar"]
